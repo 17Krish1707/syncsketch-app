@@ -1,72 +1,93 @@
-
-import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
+import React from 'react';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LandingPage from './pages/LandingPage'; // This is your Google Login Page
 import Dashboard from './pages/Dashboard';
 import MeetingRoom from './pages/MeetingRoom';
 import HistoryPage from './pages/HistoryPage';
 import SettingsPage from './pages/SettingsPage';
 import { User } from './types';
 
-const AppContent: React.FC<{ user: User | null; onLogin: (u: User) => void; onUpdateUser: (u: User) => void; onLogout: () => void }> = ({ user, onLogin, onUpdateUser, onLogout }) => {
-  return (
-    <Routes>
-      <Route 
-        path="/" 
-        element={user ? <Navigate to="/dashboard" /> : <LandingPage onLogin={onLogin} />} 
-      />
-      <Route 
-        path="/dashboard" 
-        element={user ? <Dashboard user={user} onLogout={onLogout} /> : <Navigate to="/" />} 
-      />
-      <Route 
-        path="/meeting/:id" 
-        element={user ? <MeetingRoom user={user} /> : <Navigate to="/" />} 
-      />
-      <Route 
-        path="/history" 
-        element={user ? <HistoryPage user={user} /> : <Navigate to="/" />} 
-      />
-      <Route 
-        path="/settings" 
-        element={user ? <SettingsPage user={user} onUpdateUser={onUpdateUser} onLogout={onLogout} /> : <Navigate to="/" />} 
-      />
-    </Routes>
-  );
+// --- 1. Helper to get user data safely ---
+const getUser = (): User | null => {
+  const saved = localStorage.getItem('user');
+  return saved ? JSON.parse(saved) : null;
 };
 
+// --- 2. Protected Route Wrapper ---
+// This checks if the user is logged in before showing the page
+const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
+  const user = getUser();
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+  // If user exists, render the page
+  return React.cloneElement(children, { user }); 
+};
+
+// --- 3. Main App Component ---
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('collab_user');
-    if (saved) setUser(JSON.parse(saved));
-  }, []);
-
-  const handleLogin = (u: User) => {
-    setUser(u);
-    localStorage.setItem('collab_user', JSON.stringify(u));
-  };
-
-  const handleUpdateUser = (updatedUser: User) => {
-    setUser(updatedUser);
-    localStorage.setItem('collab_user', JSON.stringify(updatedUser));
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('collab_user');
-  };
-
   return (
     <Router>
-      <div className="min-h-screen flex flex-col">
-        <AppContent 
-          user={user} 
-          onLogin={handleLogin} 
-          onUpdateUser={handleUpdateUser} 
-          onLogout={handleLogout} 
-        />
+      <div className="min-h-screen flex flex-col bg-white">
+        <Routes>
+          
+          {/* LOGIN PAGE (Public) */}
+          <Route 
+            path="/" 
+            element={<LandingPage />} 
+          />
+
+          {/* DASHBOARD (Protected) */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard user={getUser()!} onLogout={() => {
+                  localStorage.clear();
+                  window.location.href = '/';
+                }} />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* MEETING ROOM (Protected) */}
+          <Route 
+            path="/meeting/:id" 
+            element={
+              <ProtectedRoute>
+                <MeetingRoom user={getUser()!} />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* HISTORY (Protected) */}
+          <Route 
+            path="/history" 
+            element={
+              <ProtectedRoute>
+                <HistoryPage user={getUser()!} />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* SETTINGS (Protected) */}
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <SettingsPage 
+                  user={getUser()!} 
+                  onUpdateUser={(u) => localStorage.setItem('user', JSON.stringify(u))}
+                  onLogout={() => {
+                    localStorage.clear();
+                    window.location.href = '/';
+                  }} 
+                />
+              </ProtectedRoute>
+            } 
+          />
+
+        </Routes>
       </div>
     </Router>
   );
