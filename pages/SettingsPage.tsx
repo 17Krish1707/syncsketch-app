@@ -191,18 +191,32 @@ const SettingsPage: React.FC<Props> = ({ user, onUpdateUser, onLogout }) => {
             onClick={onLogout}
             className="px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg font-bold hover:bg-rose-100 transition"
           >
-            Logout from Session
+            Logout
           </button>
+          
+          {/* NEW BUTTON */}
           <button 
-            className="px-4 py-2 bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700 transition"
+            className="px-4 py-2 bg-white text-rose-600 border border-rose-200 rounded-lg font-bold hover:bg-rose-100 transition"
             onClick={() => {
-              if (confirm("Are you sure you want to clear all data? This will delete your locally saved whiteboards.")) {
-                localStorage.clear();
-                window.location.reload();
+              if (confirm("Clear all meeting history?")) {
+                localStorage.removeItem('collab_meetings');
+                alert("History cleared!");
               }
             }}
           >
-            Reset All Application Data
+            Clear Recent History
+          </button>
+
+          <button 
+            className="px-4 py-2 bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700 transition"
+            onClick={() => {
+              if (confirm("Are you sure? This deletes ALL data (history, settings, whiteboards).")) {
+                localStorage.clear();
+                window.location.href = '/';
+              }
+            }}
+          >
+            Reset Application
           </button>
         </div>
       </section>
