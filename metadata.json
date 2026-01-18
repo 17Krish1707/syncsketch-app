@@ -1,0 +1,10 @@
+{
+  "name": "SyncSketch",
+  "description": "A real-time collaborative whiteboard and meeting platform featuring AI-assisted diagramming, live cursors, voice notes, and video conferencing.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation",
+    "display-capture"
+  ]
+}
