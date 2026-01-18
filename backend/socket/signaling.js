@@ -31,6 +31,13 @@ module.exports = (io) => {
       });
     });
 
+    // --- FIX: ADDED CHAT LISTENER ---
+    socket.on("new_message", (msg) => {
+      // Broadcast the message to everyone else
+      socket.broadcast.emit("new_message", msg);
+    });
+    // --------------------------------
+
     socket.on("board_op", (op) => {
       socket.broadcast.emit("board_op", op);
     });
